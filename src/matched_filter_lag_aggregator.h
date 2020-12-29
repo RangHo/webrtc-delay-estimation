@@ -14,8 +14,8 @@
 #include <vector>
 
 #include "absl/types/optional.h"
-#include "echo_canceller3_config.h"
 #include "delay_estimate.h"
+#include "echo_canceller3_config.h"
 #include "matched_filter.h"
 
 namespace webrtc {

@@ -23,8 +23,8 @@
 
 #include "array_view.h"
 #if WEBRTC_APM_DEBUG_DUMP == 1
-#include "wav_file.h"
 #include "checks.h"
+#include "wav_file.h"
 #endif
 
 // Check to verify that the define is properly set.

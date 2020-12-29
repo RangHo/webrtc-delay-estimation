@@ -13,9 +13,9 @@
 
 #include <vector>
 
+#include "aec3_common.h"
 #include "array_view.h"
 #include "echo_canceller3_config.h"
-#include "aec3_common.h"
 
 namespace webrtc {
 

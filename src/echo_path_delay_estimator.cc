@@ -11,11 +11,11 @@
 
 #include <array>
 
-#include "echo_canceller3_config.h"
 #include "aec3_common.h"
-#include "downsampled_render_buffer.h"
 #include "apm_data_dumper.h"
 #include "checks.h"
+#include "downsampled_render_buffer.h"
+#include "echo_canceller3_config.h"
 
 namespace webrtc {
 

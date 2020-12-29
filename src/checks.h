@@ -53,12 +53,12 @@ RTC_NORETURN void rtc_FatalMessage(const char* file, int line, const char* msg);
 // C++ version.
 
 #include <string>
- 
+
 #include "absl/meta/type_traits.h"
 #include "absl/strings/string_view.h"
-#include "safe_compare.h"
 #include "inline.h"
 #include "rtc_export.h"
+#include "safe_compare.h"
 
 // The macros here print a message to stderr and abort under various
 // conditions. All will accept additional stream messages. For example:

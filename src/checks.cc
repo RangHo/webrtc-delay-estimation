@@ -166,7 +166,7 @@ RTC_NORETURN void FatalLog(const char* file,
 
   WriteFatalLogAndAbort(s);
 }
-#else  // RTC_CHECK_MSG_ENABLED
+#else   // RTC_CHECK_MSG_ENABLED
 RTC_NORETURN void FatalLog(const char* file, int line) {
   std::string s;
   AppendFormat(&s,

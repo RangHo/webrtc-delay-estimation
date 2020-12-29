@@ -14,8 +14,8 @@
 #include <array>
 #include <vector>
 
-#include "array_view.h"
 #include "aec3_common.h"
+#include "array_view.h"
 #include "cascaded_biquad_filter.h"
 #include "constructor_magic.h"
 

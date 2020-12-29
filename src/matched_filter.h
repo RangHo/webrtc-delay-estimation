@@ -15,9 +15,9 @@
 
 #include <vector>
 
-#include "array_view.h"
 #include "aec3_common.h"
 #include "arch.h"
+#include "array_view.h"
 
 namespace webrtc {
 

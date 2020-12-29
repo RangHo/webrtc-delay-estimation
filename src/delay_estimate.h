@@ -13,18 +13,18 @@
 
 namespace webrtc {
 
-    // Stores delay_estimates.
-    struct DelayEstimate {
-        enum class Quality { kCoarse, kRefined };
+// Stores delay_estimates.
+struct DelayEstimate {
+  enum class Quality { kCoarse, kRefined };
 
-        DelayEstimate(Quality quality, size_t delay)
-            : quality(quality), delay(delay) {}
+  DelayEstimate(Quality quality, size_t delay)
+      : quality(quality), delay(delay) {}
 
-        Quality quality;
-        size_t delay;
-        size_t blocks_since_last_change = 0;
-        size_t blocks_since_last_update = 0;
-    };
+  Quality quality;
+  size_t delay;
+  size_t blocks_since_last_change = 0;
+  size_t blocks_since_last_update = 0;
+};
 
 }  // namespace webrtc
 

@@ -43,11 +43,11 @@ static const int kMaxLogLineSize = 1024 - 60;
 
 #include "absl/base/attributes.h"
 #include "checks.h"
+#include "mutex.h"
 #include "platform_thread_types.h"
+#include "string_builder.h"
 #include "string_encode.h"
 #include "string_utils.h"
-#include "string_builder.h"
-#include "mutex.h"
 #include "thread_annotations.h"
 #include "time_utils.h"
 

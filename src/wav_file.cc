@@ -18,9 +18,9 @@
 #include <type_traits>
 #include <utility>
 
+#include "arch.h"
 #include "audio_util.h"
 #include "checks.h"
-#include "arch.h"
 
 namespace webrtc {
 namespace {

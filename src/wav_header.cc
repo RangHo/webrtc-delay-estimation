@@ -18,10 +18,10 @@
 #include <limits>
 #include <string>
 
+#include "arch.h"
 #include "checks.h"
 #include "logging.h"
 #include "sanitizer.h"
-#include "arch.h"
 
 namespace webrtc {
 namespace {

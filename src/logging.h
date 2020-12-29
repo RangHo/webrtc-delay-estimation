@@ -55,8 +55,8 @@
 #include "absl/strings/string_view.h"
 #include "constructor_magic.h"
 #include "deprecation.h"
-#include "string_builder.h"
 #include "inline.h"
+#include "string_builder.h"
 
 #if !defined(NDEBUG) || defined(DLOG_ALWAYS_ON)
 #define RTC_DLOG_IS_ON 1

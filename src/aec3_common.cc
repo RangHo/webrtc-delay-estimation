@@ -12,8 +12,8 @@
 
 #include <stdint.h>
 
-#include "checks.h"
 #include "arch.h"
+#include "checks.h"
 #include "cpu_features_wrapper.h"
 
 namespace webrtc {

@@ -14,14 +14,14 @@
 #include <stddef.h>
 
 #include "absl/types/optional.h"
-#include "array_view.h"
 #include "alignment_mixer.h"
+#include "array_view.h"
 #include "clockdrift_detector.h"
+#include "constructor_magic.h"
 #include "decimator.h"
 #include "delay_estimate.h"
 #include "matched_filter.h"
 #include "matched_filter_lag_aggregator.h"
-#include "constructor_magic.h"
 
 namespace webrtc {
 

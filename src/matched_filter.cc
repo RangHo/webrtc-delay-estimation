@@ -24,9 +24,9 @@
 #include <iterator>
 #include <numeric>
 
-#include "downsampled_render_buffer.h"
 #include "apm_data_dumper.h"
 #include "checks.h"
+#include "downsampled_render_buffer.h"
 #include "logging.h"
 
 namespace webrtc {

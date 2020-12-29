@@ -16,8 +16,8 @@
 #include <cstddef>
 #include <string>
 
-#include "wav_header.h"
 #include "file_wrapper.h"
+#include "wav_header.h"
 
 namespace webrtc {
 
