@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.12)
 
 project ("webrtc-delay-estimation")
 
@@ -17,15 +17,61 @@ set (CMAKE_CXX_STANDARD_REQUIRED true)
 set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DWEBRTC_APM_DEBUG_DUMP=1")
 set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DWEBRTC_APM_DEBUG_DUMP=0")
 
-# Platform-specific constants
+# Platform-specific build arguments
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWEBRTC_WIN")
+    add_compile_definitions (
+        "WEBRTC_WIN"
+        "USE_AURA=1"
+        "CR_CLANG_REVISION=\"llvmorg-12-init-12923-g6ee22ca6-1\""
+        "_HAS_NODISCARD"
+        "_LIBCPP_ABI_UNSTABLE"
+        "_LIBCPP_DISABLE_VISIBILITY_ANNOTATIONS"
+        "_LIBCPP_ENABLE_NODISCARD"
+        "_LIBCPP_DEBUG=0"
+        "_LIBCPP_NO_AUTO_LINK"
+        "__STD_C"
+        "_CRT_RAND_S"
+        "_CRT_SECURE_NO_DEPRECATE"
+        "_SCL_SECURE_NO_DEPRECATE"
+        "_ATL_NO_OPENGL"
+        "_WINDOWS"
+        "CERT_CHAIN_PARA_HAS_EXTRA_FIELDS"
+        "PSAPI_VERSION=2"
+        "WIN32"
+        "_SECURE_ATL"
+        "WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP"
+        "WIN32_LEAN_AND_MEAN"
+        "NOMINMAX"
+        "_UNICODE"
+        "UNICODE"
+        "NTDDI_VERSION=NTDDI_WIN10_VB"
+        "_WIN32_WINNT=0x0A00"
+        "WINVER=0x0A00"
+        "_DEBUG"
+        "DYNAMIC_ANNOTATIONS_ENABLED=1"
+        "WEBRTC_ENABLE_PROTOBUF=1"
+        "WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE"
+        "RTC_ENABLE_VP9"
+        "HAVE_SCTP"
+        "WEBRTC_LIBRARY_IMPL"
+        "WEBRTC_ENABLE_AVX2"
+        "WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=1"
+        "WEBRTC_WIN"
+        "ABSL_ALLOCATOR_NOTHROW=1"
+    )
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWEBRTC_POSIX")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWEBRTC_MAC")
+    add_compile_definitions (
+        "WEBRTC_POSIX"
+        "WEBRTC_MAC"
+    )
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWEBRTC_POSIX")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWEBRTC_LINUX -lpthread -march=skylake-avx512")
+    add_compile_definitions (
+        "WEBRTC_POSIX"
+        "WEBRTC_LINUX"
+    )
+    add_compile_options(-march=skylake-avx512)
+else ()
+    message (FATAL_ERROR "Unsupported platform detected!")
 endif ()
 
 
@@ -138,10 +184,21 @@ add_executable (webrtc-delay-estimation
 
     # system_wrappers/source/
     "src/cpu_features.cc"
-    #"src/cpu_features_android.cc"
-    "src/cpu_features_linux.cc"
     "src/field_trial.cc"
 )
 
+# Platform-specific source code
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    target_sources (webrtc-delay-estimation PRIVATE "src/cpu_features_linux.cc")
+endif ()
+
 target_link_libraries (webrtc-delay-estimation absl::strings)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    # Windows Multimedia Library is required for Windows
+    target_link_libraries (webrtc-delay-estimation winmm)
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    # pthread library is required for Linux
+    target_link_libraries (webrtc-delay-estimation pthread)
+endif ()
 
