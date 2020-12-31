@@ -75,10 +75,6 @@ else ()
 endif ()
 
 
-# Add Abseil library
-add_subdirectory ("external/abseil-cpp")
-include_directories ("external/abseil-cpp")
-
 # Executable sources
 add_executable (webrtc-delay-estimation
 
@@ -192,7 +188,16 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_sources (webrtc-delay-estimation PRIVATE "src/cpu_features_linux.cc")
 endif ()
 
+# Add Abseil library
+add_subdirectory ("external/abseil-cpp")
+include_directories ("external/abseil-cpp")
 target_link_libraries (webrtc-delay-estimation absl::strings)
+
+# Add spdlog library
+add_subdirectory ("external/spdlog")
+include_directories ("external/spdlog/include")
+target_link_libraries (webrtc-delay-estimation spdlog::spdlog)
+
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     # Windows Multimedia Library is required for Windows
