@@ -80,6 +80,8 @@ add_executable (webrtc-delay-estimation
 
     # entrypoint
     "src/main.cc"
+    "src/utilities.cc"
+    "src/utilities.h"
 
     # api/
     "src/arraysize.h"
@@ -96,12 +98,23 @@ add_executable (webrtc-delay-estimation
 
     # common_audio/include/
     "src/audio_util.h"
+
+    # common_audio/third_party/ooura/fft_size_128
+    "src/ooura_fft.cc"
+    "src/ooura_fft.h"
+    "src/ooura_fft_sse2.cc"
+    "src/ooura_fft_tables_common.h"
+    "src/ooura_fft_tables_neon_sse2.h"
     
     # modules/audio_processing/aec3/
     "src/aec3_common.cc"
     "src/aec3_common.h"
+    "src/aec3_fft.cc"
+    "src/aec3_fft.h"
     "src/alignment_mixer.cc"
     "src/alignment_mixer.h"
+    "src/block_buffer.cc"
+    "src/block_buffer.h"
     "src/clockdrift_detector.cc"
     "src/clockdrift_detector.h"
     "src/decimator.cc"
@@ -111,11 +124,21 @@ add_executable (webrtc-delay-estimation
     "src/downsampled_render_buffer.h"
     "src/echo_path_delay_estimator.cc"
     "src/echo_path_delay_estimator.h"
+    "src/fft_buffer.cc"
+    "src/fft_buffer.h"
+    "src/fft_data.h"
+    "src/fft_data_avx2.cc"
     "src/matched_filter.cc"
     "src/matched_filter.h"
     "src/matched_filter_avx2.cc"
     "src/matched_filter_lag_aggregator.cc"
     "src/matched_filter_lag_aggregator.h"
+    "src/render_buffer.cc"
+    "src/render_buffer.h"
+    "src/render_delay_buffer.cc"
+    "src/render_delay_buffer.h"
+    "src/spectrum_buffer.cc"
+    "src/spectrum_buffer.h"
 
     # modules/audio_processing/logging/
     "src/apm_data_dumper.cc"
@@ -127,6 +150,7 @@ add_executable (webrtc-delay-estimation
 
     # rtc_base/
     "src/array_view.h"
+    "src/atomic_ops.h"
     "src/checks.cc"
     "src/checks.h"
     "src/constructor_magic.h"
