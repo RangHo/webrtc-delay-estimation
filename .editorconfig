@@ -5,12 +5,12 @@ end_of_line = lf
 insert_final_newline = true
 charset = utf-8
 
-# CMakeList
-[CMakeList.txt]
-indent_style = space
-indent_size = 2
-
-# C/C++ source code
-[*.{c,h,cpp,hpp}]
+# CMakeLists
+[CMakeLists.txt]
 indent_style = space
 indent_size = 4
+
+# C/C++ source code
+[*.{c,h,cc,cpp,hpp}]
+indent_style = space
+indent_size = 2
