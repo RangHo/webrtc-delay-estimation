@@ -1,10 +1,9 @@
 import argparse
 import random
-import sys
 import wave
 
 
-def delay_wav(filename: str, delay_ms: int, output_filename: str = None, randomize: bool = False):
+def delay_wav(filename: str, delay_samples: int, output_filename: str = None, randomize: bool = False):
     """
     Creates a delayed copy of the given .wav file.
     """
@@ -12,6 +11,7 @@ def delay_wav(filename: str, delay_ms: int, output_filename: str = None, randomi
 
     # Information required to create delayed waves
     sample_rate = input_wav.getframerate()
+    sample_width = input_wav.getsampwidth()
 
     # Setup the output file
     output_wav = wave.open(
@@ -19,18 +19,17 @@ def delay_wav(filename: str, delay_ms: int, output_filename: str = None, randomi
         'wb'
     )
     output_wav.setframerate(sample_rate)
+    output_wav.setsampwidth(sample_width)
     output_wav.setnchannels(input_wav.getnchannels())
-    output_wav.setsampwidth(input_wav.getsampwidth())
 
     # Create delay buffer
-    delay_samples = delay_ms * sample_rate // 1000
     print("Delaying samples: ", delay_samples)
     delay_buffer = bytearray()
     if randomize:
-        for _ in range(delay_samples):
+        for _ in range(delay_samples * sample_width):
             delay_buffer.append(random.randrange(0, 256))
     else:
-        delay_buffer.extend(b'\x00' * delay_samples)
+        delay_buffer.extend(b'\x00' * delay_samples * sample_width)
 
     # Write delay buffer to the output file
     output_wav.writeframes(delay_buffer)
@@ -47,7 +46,7 @@ if __name__ == "__main__":
     parser.add_argument('input',
                         help="Name of the input file.")
     parser.add_argument('delay', type=int,
-                        help="Delay in miliseconds.")
+                        help="Amount of delay samples.")
     parser.add_argument('output', nargs='?', default='delay.wav',
                         help="Name of the output file.")
     parser.add_argument('--random', action='store_true',
