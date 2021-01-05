@@ -217,6 +217,10 @@ add_subdirectory ("external/abseil-cpp")
 include_directories ("external/abseil-cpp")
 target_link_libraries (webrtc-delay-estimation absl::strings)
 
+# Add cxxopts library
+add_subdirectory ("external/cxxopts")
+include_directories ("external/cxxopts/include")
+
 # Add spdlog library
 add_subdirectory ("external/spdlog")
 include_directories ("external/spdlog/include")

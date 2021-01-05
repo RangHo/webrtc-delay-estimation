@@ -6,3 +6,6 @@
 	path = external/spdlog
 	url = https://github.com/gabime/spdlog
 	branch = 1.x
+[submodule "external/cxxopts"]
+	path = external/cxxopts
+	url = https://github.com/jarro2783/cxxopts
