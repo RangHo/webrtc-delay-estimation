@@ -69,7 +69,7 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         "WEBRTC_POSIX"
         "WEBRTC_LINUX"
     )
-    add_compile_options(-march=skylake-avx512)
+    add_compile_options(-march=native)
 else ()
     message (FATAL_ERROR "Unsupported platform detected!")
 endif ()
