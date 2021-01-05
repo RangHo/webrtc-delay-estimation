@@ -4,45 +4,91 @@
 #include <memory>
 #include <vector>
 
-#include "render_delay_buffer.h"
+#include "cxxopts.hpp"
+
 #include "spdlog/cfg/env.h"
 #include "spdlog/spdlog.h"
 
 #include "apm_data_dumper.h"
 #include "echo_path_delay_estimator.h"
-#include "utilities.h"
+#include "render_delay_buffer.h"
 #include "wav_file.h"
 
+#include "utilities.h"
+
 // Compile time constants
-// TODO: they might have to be exposed as command line arguments
 static constexpr size_t band_size = 1;
-static constexpr size_t block_size = 64;
-static constexpr size_t down_sampling_factor = 8;
+
+static const constexpr char* default_block_size = "64";
+static const constexpr char* default_down_sampling_factor = "8";
 
 int main(int argc, char* argv[]) {
   // Setup logger
-  spdlog::cfg::load_env_levels();
   spdlog::set_pattern("[%l] %v");
 
-  // Insane command line arguments
-  if (argc != 3) {
-    std::cerr << "Usage: " << argv[0] << " <render> <capture>" << std::endl;
-    std::exit(1);
+  // Path to WAV input files
+  std::string render_filename, capture_filename;
+
+  // Arguments used when recognizing delay
+  size_t block_size, down_sampling_factor;
+
+  // Parse command line arguments
+  try {
+    // clang-format butchers readability when defining options so it is better
+    // to just ignore the 80-column limit
+    // clang-format off
+    cxxopts::Options options(argv[0], "Delay estimation algorithm extracted from WebRTC library.");
+    options.add_options()
+      ("h,help", "Display help message.")
+      ("v,verbose", "Makes this program talk more.")
+      ("b,block-size", "Block size to use when recognizing delay.",
+          cxxopts::value(block_size)->default_value(default_block_size))
+      ("d,downsampling-factor", "Down-sampling factor to use when recognizing delay.",
+          cxxopts::value(down_sampling_factor)->default_value(default_down_sampling_factor))
+      ("render", "Path to the \"rendered\" WAV file.",
+          cxxopts::value(render_filename))
+      ("capture", "Path to the \"captured\" WAV file.",
+          cxxopts::value(capture_filename));
+    options.positional_help("<render> <capture>");
+    // clang-format on
+    options.parse_positional({"render", "capture", "positional"});
+    auto args = options.parse(argc, argv);
+
+    // Display help message first
+    if (args.count("help")) {
+      std::cerr << options.help() << std::endl;
+      std::exit(0);
+    }
+
+    // Both positional arguments are required
+    if (!args.count("render") || !args.count("capture")) {
+      spdlog::error("USAGE: {} <render> <capture>", argv[0]);
+      spdlog::error("Try '{} --help' for more information.", argv[0]);
+      std::exit(2);
+    }
+
+    // Change log level according to the verbosity
+    if (args.count("verbose"))
+      spdlog::set_level(spdlog::level::debug);
+
+  } catch (const cxxopts::OptionException& e) {
+    spdlog::error("Unable to parse options: {}", e.what());
+    std::exit(255);
   }
 
   // Make sure that the files exist first
-  if (!exists(argv[1])) {
-    std::cerr << argv[1] << ": No such file or directory" << std::endl;
+  if (!exists(render_filename)) {
+    std::cerr << render_filename << ": No such file or directory" << std::endl;
     std::exit(1);
   }
-  if (!exists(argv[2])) {
-    std::cerr << argv[2] << ": No such file or directory" << std::endl;
+  if (!exists(capture_filename)) {
+    std::cerr << capture_filename << ": No such file or directory" << std::endl;
     std::exit(1);
   }
 
   // Construct WAV reader from filenames provided
-  webrtc::WavReader rendered(argv[1]);
-  webrtc::WavReader captured(argv[2]);
+  webrtc::WavReader rendered(render_filename);
+  webrtc::WavReader captured(capture_filename);
 
   // Some debug infomration about each input files
   spdlog::debug("Render file information:");
@@ -64,7 +110,7 @@ int main(int argc, char* argv[]) {
     spdlog::error("  Render file: {} {}, {} Hz", captured.num_channels(),
                   captured.num_channels() == 1 ? "channel" : "channels",
                   captured.sample_rate());
-    std::exit(2);
+    std::exit(5);
   }
 
   // Extract information from the file metadata
@@ -125,7 +171,9 @@ int main(int argc, char* argv[]) {
   }
 
   if (estimated_delay)
-    spdlog::info("Estimated delay: {} samples.", estimated_delay->delay);
+    spdlog::info("Estimated delay: {} sample(s) (around {:.2f}ms).",
+                 estimated_delay->delay,
+                 estimated_delay->delay * 1000.0f / sample_rate);
   else
     spdlog::critical("Delay estimate is unavailable.");
 

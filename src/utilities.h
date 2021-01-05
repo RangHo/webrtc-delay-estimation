@@ -7,4 +7,3 @@
 bool exists(const std::string& filename);
 
 #endif
-
