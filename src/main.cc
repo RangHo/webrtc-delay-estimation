@@ -14,13 +14,14 @@
 #include "render_delay_buffer.h"
 #include "wav_file.h"
 
-#include "utilities.h"
-
 // Compile time constants
-static constexpr size_t band_size = 1;
-
 static const constexpr char* default_block_size = "64";
 static const constexpr char* default_down_sampling_factor = "8";
+
+static bool exists(const std::string& filename) {
+  std::ifstream file_to_test(filename);
+  return file_to_test.good();
+}
 
 int main(int argc, char* argv[]) {
   // Setup logger
@@ -32,6 +33,9 @@ int main(int argc, char* argv[]) {
   // Arguments used when recognizing delay
   size_t block_size, down_sampling_factor;
 
+  // Whether the output should be brief
+  bool brief_output = false;
+
   // Parse command line arguments
   try {
     // clang-format butchers readability when defining options so it is better
@@ -41,6 +45,8 @@ int main(int argc, char* argv[]) {
     options.add_options()
       ("h,help", "Display help message.")
       ("v,verbose", "Makes this program talk more.")
+      ("brief", "Makes this program talk only when absolutely necessary.",
+          cxxopts::value(brief_output))
       ("b,block-size", "Block size to use when recognizing delay.",
           cxxopts::value(block_size)->default_value(default_block_size))
       ("d,downsampling-factor", "Down-sampling factor to use when recognizing delay.",
@@ -71,6 +77,10 @@ int main(int argc, char* argv[]) {
     if (args.count("verbose"))
       spdlog::set_level(spdlog::level::debug);
 
+    // If brief, disable logging unless some error happens
+    if (args.count("brief"))
+      spdlog::set_level(spdlog::level::err);
+
   } catch (const cxxopts::OptionException& e) {
     spdlog::error("Unable to parse options: {}", e.what());
     std::exit(255);
@@ -85,6 +95,8 @@ int main(int argc, char* argv[]) {
     std::cerr << capture_filename << ": No such file or directory" << std::endl;
     std::exit(1);
   }
+
+  spdlog::debug("---- Reading input files ----");
 
   // Construct WAV reader from filenames provided
   webrtc::WavReader rendered(render_filename);
@@ -120,12 +132,13 @@ int main(int argc, char* argv[]) {
                          ? rendered.num_samples()
                          : captured.num_samples();
 
-  // Setup structures and classes to use EchoPathDeayEstimator
+  // Setup structures and classes to use EchoPathDelayEstimator
+  size_t band_size = sample_rate / 16000;
   webrtc::ApmDataDumper data_dumper(0);  // basically NOP
   webrtc::EchoCanceller3Config config;
   config.delay.down_sampling_factor =
-      2;                          // downsampling factor used to detect delay
-  config.delay.num_filters = 10;  // TODO: no idea what this does
+      down_sampling_factor;      // downsampling factor used to detect delay
+  config.delay.num_filters = 5;  // TODO: no idea what this does
 
   // render_buffer[band][channel][block]
   std::vector<std::vector<std::vector<float>>> render_buffer(
@@ -142,6 +155,12 @@ int main(int argc, char* argv[]) {
   // Actual estimator object
   webrtc::EchoPathDelayEstimator estimator(&data_dumper, config,
                                            captured.num_channels());
+
+  spdlog::debug("---- Delay estimation start ----");
+  spdlog::debug("Using the following settings:");
+  spdlog::debug("  - Down sampling factor: {}",
+                config.delay.down_sampling_factor);
+  spdlog::debug("  - Delay filters: {}", config.delay.num_filters);
 
   // Loop through the entire sample to find the best delay value
   absl::optional<webrtc::DelayEstimate> estimated_delay;
@@ -162,20 +181,31 @@ int main(int argc, char* argv[]) {
             "First delay estimation appeared at trial #{}: {} sample(s)", i,
             maybe_estimated_delay->delay);
       } else if (estimated_delay->delay != maybe_estimated_delay->delay) {
-        spdlog::debug("Delay estimation updated at trial #{}: {} sample(s)", i,
-                      maybe_estimated_delay->delay);
+        spdlog::debug("Delay estimation updated at trial #{}", i);
+        spdlog::debug("  - Delay: {} sample(s)", maybe_estimated_delay->delay);
+        spdlog::debug("  - Quality: {}",
+                      maybe_estimated_delay->quality ==
+                              webrtc::DelayEstimate::Quality::kRefined
+                          ? "Refined"
+                          : "Coarse");
       }
 
       estimated_delay = maybe_estimated_delay;
     }
   }
 
-  if (estimated_delay)
-    spdlog::info("Estimated delay: {} sample(s) (around {:.2f}ms).",
-                 estimated_delay->delay,
-                 estimated_delay->delay * 1000.0f / sample_rate);
-  else
+  spdlog::debug("---- Delay estimation complete ----");
+
+  if (estimated_delay) {
+    auto delay_samples = estimated_delay->delay;
+    if (brief_output)
+      std::cout << delay_samples << std::endl;
+    else
+      spdlog::info("Estimated delay: {} sample(s) (around {}ms).",
+                   delay_samples, delay_samples * 1000 / sample_rate);
+  } else {
     spdlog::critical("Delay estimate is unavailable.");
+  }
 
   return 0;
 }

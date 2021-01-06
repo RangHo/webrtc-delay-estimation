@@ -80,8 +80,6 @@ add_executable (webrtc-delay-estimation
 
     # entrypoint
     "src/main.cc"
-    "src/utilities.cc"
-    "src/utilities.h"
 
     # api/
     "src/arraysize.h"
