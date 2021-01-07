@@ -158,7 +158,6 @@ add_dependencies (delay-estimator
 
     absl::strings
     cxxopts
-    spdlog::spdlog
 )
 find_library (ABSL_STRINGS absl::strings REQUIRED)
 find_library (CXXOPTS cxxopts REQUIRED)

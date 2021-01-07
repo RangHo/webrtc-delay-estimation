@@ -13,6 +13,7 @@
 #include "wav_file.h"
 
 // Compile time constants
+static const constexpr char* default_num_filter = "10";
 static const constexpr char* default_down_sampling_factor = "8";
 
 static bool exists(const std::string& filename) {
@@ -25,7 +26,7 @@ int main(int argc, char* argv[]) {
   std::string render_filename, capture_filename;
 
   // Arguments used when recognizing delay
-  size_t down_sampling_factor;
+  size_t num_filters, down_sampling_factor;
 
   // Whether the output should be brief
   bool verbose_output = false;
@@ -40,6 +41,8 @@ int main(int argc, char* argv[]) {
       ("h,help", "Display help message.")
       ("v,verbose", "Makes this program talk more.",
           cxxopts::value(verbose_output))
+      ("f,filter", "Number of filters to use when recognizing delay.",
+          cxxopts::value(num_filters)->default_value(default_num_filter))
       ("d,downsampling-factor", "Down-sampling factor to use when recognizing delay.",
           cxxopts::value(down_sampling_factor)->default_value(default_down_sampling_factor))
       ("render", "Path to the \"rendered\" WAV file.",
@@ -123,7 +126,7 @@ int main(int argc, char* argv[]) {
   webrtc::EchoCanceller3Config config;
   config.delay.down_sampling_factor =
       down_sampling_factor;  // downsampling factor used to detect delay
-  config.delay.num_filters = 5;  // TODO: no idea what this does
+  config.delay.num_filters = num_filters;  // TODO: no idea what this does
 
   // render_buffer[band][channel][block]
   std::vector<std::vector<std::vector<float>>> render_buffer(
