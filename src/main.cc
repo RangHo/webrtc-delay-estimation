@@ -15,7 +15,6 @@
 #include "wav_file.h"
 
 // Compile time constants
-static const constexpr char* default_block_size = "64";
 static const constexpr char* default_down_sampling_factor = "8";
 
 static bool exists(const std::string& filename) {
@@ -31,7 +30,7 @@ int main(int argc, char* argv[]) {
   std::string render_filename, capture_filename;
 
   // Arguments used when recognizing delay
-  size_t block_size, down_sampling_factor;
+  size_t down_sampling_factor;
 
   // Whether the output should be brief
   bool brief_output = false;
@@ -47,8 +46,6 @@ int main(int argc, char* argv[]) {
       ("v,verbose", "Makes this program talk more.")
       ("brief", "Makes this program talk only when absolutely necessary.",
           cxxopts::value(brief_output))
-      ("b,block-size", "Block size to use when recognizing delay.",
-          cxxopts::value(block_size)->default_value(default_block_size))
       ("d,downsampling-factor", "Down-sampling factor to use when recognizing delay.",
           cxxopts::value(down_sampling_factor)->default_value(default_down_sampling_factor))
       ("render", "Path to the \"rendered\" WAV file.",
@@ -143,10 +140,10 @@ int main(int argc, char* argv[]) {
   // render_buffer[band][channel][block]
   std::vector<std::vector<std::vector<float>>> render_buffer(
       band_size, std::vector<std::vector<float>>(
-                     rendered.num_channels(), std::vector<float>(block_size)));
+                     rendered.num_channels(), std::vector<float>(webrtc::kBlockSize)));
   // capture_buffer[channel][block]
   std::vector<std::vector<float>> capture_buffer(
-      captured.num_channels(), std::vector<float>(block_size));
+      captured.num_channels(), std::vector<float>(webrtc::kBlockSize));
 
   // Render delay buffer required to create downsampled render buffer
   std::unique_ptr<webrtc::RenderDelayBuffer> render_delay_buffer(
@@ -164,9 +161,9 @@ int main(int argc, char* argv[]) {
 
   // Loop through the entire sample to find the best delay value
   absl::optional<webrtc::DelayEstimate> estimated_delay;
-  for (int i = 0; i < num_samples / block_size; i++) {
-    rendered.ReadSamples(block_size, render_buffer[0][0].data());
-    captured.ReadSamples(block_size, capture_buffer[0].data());
+  for (int i = 0; i < num_samples / webrtc::kBlockSize; i++) {
+    rendered.ReadSamples(webrtc::kBlockSize, render_buffer[0][0].data());
+    captured.ReadSamples(webrtc::kBlockSize, capture_buffer[0].data());
 
     render_delay_buffer->Insert(render_buffer);
     render_delay_buffer->PrepareCaptureProcessing();
