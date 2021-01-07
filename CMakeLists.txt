@@ -78,7 +78,6 @@ endif ()
 add_subdirectory ("external/abseil-cpp" EXCLUDE_FROM_ALL)
 add_subdirectory ("external/catch2" EXCLUDE_FROM_ALL)
 add_subdirectory ("external/cxxopts" EXCLUDE_FROM_ALL)
-add_subdirectory ("external/spdlog" EXCLUDE_FROM_ALL)
 
 # Add source directory
 add_subdirectory ("src")

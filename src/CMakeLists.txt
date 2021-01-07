@@ -153,7 +153,7 @@ add_executable (delay-estimator
 )
 
 # Add executable dependencies
-add_dependencies (webrtc-delay-estimation
+add_dependencies (delay-estimator
     webrtc-delay-estimation
 
     absl::strings
@@ -162,12 +162,10 @@ add_dependencies (webrtc-delay-estimation
 )
 find_library (ABSL_STRINGS absl::strings REQUIRED)
 find_library (CXXOPTS cxxopts REQUIRED)
-find_library (SPDLOG spdlog::spdlog REQUIRED)
 target_link_libraries(delay-estimator PRIVATE
     webrtc-delay-estimation
 
     absl::strings
     cxxopts
-    spdlog::spdlog
 )
 
