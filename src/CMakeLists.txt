@@ -139,7 +139,6 @@ target_include_directories (webrtc-delay-estimation PUBLIC
 add_dependencies (webrtc-delay-estimation
     absl::strings
 )
-find_library (ABSL_STRINGS absl::strings REQUIRED)
 target_link_libraries (webrtc-delay-estimation PRIVATE
     absl::strings
 )
@@ -164,8 +163,6 @@ add_dependencies (delay-estimator
     absl::strings
     cxxopts
 )
-find_library (ABSL_STRINGS absl::strings REQUIRED)
-find_library (CXXOPTS cxxopts REQUIRED)
 target_link_libraries(delay-estimator PRIVATE
     webrtc-delay-estimation
 
