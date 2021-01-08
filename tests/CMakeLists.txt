@@ -1,9 +1,12 @@
 # Test sources
 add_executable (webrtc-delay-estimation-tests
     "main.cc"
-    "random_delay_estimation_test.cc"
     "test_tools.cc"
     "test_tools.h"
+
+    # Test files
+    "random_delay_estimation_test.cc"
+    "random_delay_estimation_header_test.cc"
 )
 target_include_directories (webrtc-delay-estimation-tests PRIVATE
     "../src"
