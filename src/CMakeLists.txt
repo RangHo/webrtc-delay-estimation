@@ -1,6 +1,8 @@
 # Export WebRTC portion as a library
 add_library (webrtc-delay-estimation
 
+    "webrtc_delay_estimator.cc"
+
     # api/
     "arraysize.h"
 
@@ -131,6 +133,9 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif ()
 
 # Add main library dependencies
+target_include_directories (webrtc-delay-estimation PUBLIC
+    "${PROJECT_SOURCE_DIR}/include"
+)
 add_dependencies (webrtc-delay-estimation
     absl::strings
 )
