@@ -144,8 +144,8 @@ int main(int argc, char* argv[]) {
 
   if (verbose_output)
     std::cout << "Using the following settings:" << std::endl
-              << "  - Down sampling factor: "
-              << setting.down_sampling_factor << std::endl
+              << "  - Down sampling factor: " << setting.down_sampling_factor
+              << std::endl
               << "  - Delay filters: " << setting.num_filters << std::endl;
 
   try {
@@ -157,7 +157,8 @@ int main(int argc, char* argv[]) {
     else
       std::cout << result << std::endl;
   } catch (std::exception e) {
-    std::cerr << "Unable to get estimated delay value: " << e.what() << std::endl;
+    std::cerr << "Unable to get estimated delay value: " << e.what()
+              << std::endl;
     std::exit(1);
   }
 

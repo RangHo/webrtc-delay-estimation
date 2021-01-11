@@ -10,11 +10,13 @@
 namespace webrtc_delay_estimation {
 
 const char* NoEstimateAvailableError::what() const noexcept {
-  return "The delay estimator was not able to come up with a viable delay estimate.";
+  return "The delay estimator was not able to come up with a viable delay "
+         "estimate.";
 }
 
 const char* IncompatibleInputsError::what() const noexcept {
-  return "The input files provided are not compatible, thus cannot estimate delay.";
+  return "The input files provided are not compatible, thus cannot estimate "
+         "delay.";
 }
 
 size_t EstimateDelay(WavFileInfo& render,
