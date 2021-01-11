@@ -12,6 +12,8 @@
 #include "render_delay_buffer.h"
 #include "wav_file.h"
 
+#include "webrtc_delay_estimation.h"
+
 // Compile time constants
 static const constexpr char* default_num_filter = "10";
 static const constexpr char* default_down_sampling_factor = "8";
@@ -22,6 +24,8 @@ static bool exists(const std::string& filename) {
 }
 
 int main(int argc, char* argv[]) {
+  using namespace webrtc_delay_estimation;
+
   // Path to WAV input files
   std::string render_filename, capture_filename;
 
@@ -116,86 +120,44 @@ int main(int argc, char* argv[]) {
   // Extract information from the file metadata
   auto sample_rate = rendered.sample_rate();
   auto num_channels = rendered.num_channels();
-  auto num_samples = rendered.num_samples() < captured.num_samples()
-                         ? rendered.num_samples()
-                         : captured.num_samples();
 
-  // Setup structures and classes to use EchoPathDelayEstimator
-  size_t band_size = sample_rate / 16000;
-  webrtc::ApmDataDumper data_dumper(0);  // basically NOP
-  webrtc::EchoCanceller3Config config;
-  config.delay.down_sampling_factor =
-      down_sampling_factor;  // downsampling factor used to detect delay
-  config.delay.num_filters = num_filters;  // TODO: no idea what this does
+  // Read all samples into vectors
+  std::vector<float> render_samples(rendered.num_samples());
+  std::vector<float> capture_samples(captured.num_samples());
 
-  // render_buffer[band][channel][block]
-  std::vector<std::vector<std::vector<float>>> render_buffer(
-      band_size,
-      std::vector<std::vector<float>>(rendered.num_channels(),
-                                      std::vector<float>(webrtc::kBlockSize)));
-  // capture_buffer[channel][block]
-  std::vector<std::vector<float>> capture_buffer(
-      captured.num_channels(), std::vector<float>(webrtc::kBlockSize));
+  rendered.ReadSamples(rendered.num_samples(), render_samples.data());
+  captured.ReadSamples(captured.num_samples(), capture_samples.data());
 
-  // Render delay buffer required to create downsampled render buffer
-  std::unique_ptr<webrtc::RenderDelayBuffer> render_delay_buffer(
-      webrtc::RenderDelayBuffer::Create(config, sample_rate, num_channels));
+  WavFileInfo render_info;
+  render_info.num_channels = num_channels;
+  render_info.sample_rate = sample_rate;
+  render_info.samples = render_samples;
+  WavFileInfo capture_info;
+  capture_info.num_channels = num_channels;
+  capture_info.sample_rate = sample_rate;
+  capture_info.samples = capture_samples;
 
-  // Actual estimator object
-  webrtc::EchoPathDelayEstimator estimator(&data_dumper, config,
-                                           captured.num_channels());
+  // Generate settings
+  Setting setting;
+  setting.down_sampling_factor = down_sampling_factor;
+  setting.num_filters = num_filters;
 
   if (verbose_output)
     std::cout << "Using the following settings:" << std::endl
               << "  - Down sampling factor: "
-              << config.delay.down_sampling_factor << std::endl
-              << "  - Delay filters: " << config.delay.num_filters << std::endl;
+              << setting.down_sampling_factor << std::endl
+              << "  - Delay filters: " << setting.num_filters << std::endl;
 
-  // Loop through the entire sample to find the best delay value
-  absl::optional<webrtc::DelayEstimate> estimated_delay;
-  for (int i = 0; i < num_samples / webrtc::kBlockSize; i++) {
-    rendered.ReadSamples(webrtc::kBlockSize, render_buffer[0][0].data());
-    captured.ReadSamples(webrtc::kBlockSize, capture_buffer[0].data());
+  try {
+    auto result = EstimateDelay(render_info, capture_info, setting);
 
-    render_delay_buffer->Insert(render_buffer);
-    render_delay_buffer->PrepareCaptureProcessing();
-
-    auto maybe_estimated_delay = estimator.EstimateDelay(
-        render_delay_buffer->GetDownsampledRenderBuffer(), capture_buffer);
-
-    // Sometimes, there is a new updated value, sometimes, there isn't
-    if (maybe_estimated_delay) {
-      if (verbose_output) {
-        if (!estimated_delay) {
-          std::cout << "First delay estimation appeared at trial #" << i << ": "
-                    << maybe_estimated_delay->delay << " sample(s)"
-                    << std::endl;
-        } else if (estimated_delay->delay != maybe_estimated_delay->delay) {
-          std::cout << (maybe_estimated_delay->quality ==
-                                webrtc::DelayEstimate::Quality::kRefined
-                            ? "Refined"
-                            : "Coarse")
-                    << " delay estimation updated at trial #" << i << ": "
-                    << maybe_estimated_delay->delay << " sample(s)"
-                    << std::endl;
-        }
-
-        estimated_delay = maybe_estimated_delay;
-      }
-    }
-  }
-
-  if (estimated_delay) {
-    auto delay_samples = estimated_delay->delay;
     if (verbose_output)
-      std::cout << "Estimated delay: " << delay_samples << " sample(s) (around "
-                << delay_samples * 1000 / sample_rate << "ms)." << std::endl;
+      std::cout << "Estimated delay: " << result << " sample(s) (around "
+                << result * 1000 / sample_rate << "ms)." << std::endl;
     else
-      std::cout << delay_samples << std::endl;
-  } else {
-    if (verbose_output)
-      std::cerr << "Delay estimate is not available." << std::endl;
-
+      std::cout << result << std::endl;
+  } catch (std::exception e) {
+    std::cerr << "Unable to get estimated delay value: " << e.what() << std::endl;
     std::exit(1);
   }
 

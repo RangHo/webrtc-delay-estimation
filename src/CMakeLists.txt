@@ -1,7 +1,7 @@
 # Export WebRTC portion as a library
 add_library (webrtc-delay-estimation
 
-    "webrtc_delay_estimator.cc"
+    "webrtc_delay_estimation.cc"
 
     # api/
     "arraysize.h"
