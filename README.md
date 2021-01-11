@@ -66,3 +66,57 @@ mkdir build && cd build
 cmake ..
 cmake --build . --target webrtc-delay-estimation
 ```
+
+## How to use
+
+This repository provides 3 CMake targets as follows:
+- `webrtc-delay-estimation`: A static library exposing delay estimation function as declared in [`include/webrtc-delay-estimation.h`](https://github.com/RangHo/webrtc-delay-estimation/blob/main/include/webrtc_delay_estimation.h)
+- `delay-estimator`: An executable that uses the library above to estimate delay in between two WAV files
+- `webrtc-delay-estimation-tests`: A testing executable that generates random samples and tries to estimate delay using them
+
+### `webrtc-delay-estimation` library
+
+This library exposes the extracted WebRTC components and an additional helper function. By default, linking this library using CMake's `target_link_libraries` directive includes definition for the helper function only. To access raw WebRTC components, copy the relevant `.h` files from `src/` directory.
+
+Example `CMakeLists.txt` file would look like:
+
+```cmake
+add_executable (my-executable
+  "main.cc"
+  # ...
+)
+
+target_link_libraries (my-executable PRIVATE
+  webrtc-delay-estimation
+)
+```
+
+### `delay-estimator` binary
+
+This command line utility uses `webrtc-delay-estimation` library above to find delay from two different WAV files. Unless given a `-v` switch, the program will write the estimated delay in samples to `stdout`. It takes two positional arguments: `render` and `capture`. The former is the WAV file of the far end, and the latter is the WAV file captured by the local microphone.
+
+#### Usage
+
+`delay-estimator [-hv] [-f integer] [-d {2,4,8}] /path/to/render /path/to/capture`
+
+#### Argument information
+
+- (required, positional) `/path/to/render`: path to the render WAV file.
+- (required, positional) `/path/to/capture`: path to the capture WAV file.
+- (optional) `-h` or `--help`: displays help message.
+- (optional) `-v` or `--verbose`: show additional information when executing the program.
+- (optional) `-f integer` or `--filter integer`: Use `integer` number of filters when estimating delay. (default: 10)
+- (optional) `-d {2,4,8}` or `--downsampling-factor {2,4,8}`: sets the down sampling factor. The factor can be either 2, 4, or 8. (default: 8)
+
+### `webrtc-delay-estimation-tests` binary
+
+This target builds a testing binary using [Catch2](https://github.com/catchorg/Catch2) testing framework. Build and run the binary to test the functionality of the library.
+
+```sh
+# You can run the binary directly
+cd build/tests
+./webrtc-delay-estimation-tests
+
+# ... or you can just use ctest to automate things
+ctest
+```
